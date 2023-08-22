@@ -9,9 +9,14 @@ except ImportError as ie:
     print("Error {}!!!!".format(ie))
 
 
-def first_function_execute():
-    print("Hello World")
-    return "Hello World"
+def first_function_execute(**context):
+    print("First Function Execute.....")
+    print(type(context['ti']), context['ti'], dir(context['ti']), sep = "\n****************")
+    context['ti'].xcom_push(key = "name", value = "Jaswanthraj R")
+
+def second_function_execute(**context):
+    instance = context['ti'].xcom_pull(key = "name")
+    print("I am in Second Function Execute got value: {} from function 1......".format(instance))
 
 
 with DAG(
@@ -28,5 +33,13 @@ with DAG(
     first_function_execute = PythonOperator(
         task_id = "first_function_execute",
         python_callable = first_function_execute,
+        provide_context=True,
+        
+    )
+    second_function_execute = PythonOperator(
+        task_id = "second_function_execute",
+        python_callable = second_function_execute,
+        provide_context=True,
     )
     
+first_function_execute >> second_function_execute
